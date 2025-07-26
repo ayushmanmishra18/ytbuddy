@@ -9,7 +9,7 @@ from app.utils.transcript import load_whisper_model_on_startup  # Import the fun
 
 load_dotenv()
 
-# Use a writable directory for logs (Hugging Face allows /tmp)
+# Writable logs directory for Hugging Face Spaces
 log_dir = Path("/tmp/logs")
 log_dir.mkdir(parents=True, exist_ok=True)
 
@@ -26,36 +26,36 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
-# CORS Configuration
+# Allow frontend domains
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
         "http://127.0.0.1:5173",
-        "https://ytbuddy-frontend.onrender.com"  # Your frontend URL
+        "https://ytbuddy-frontend.onrender.com",  # Frontend
+        "https://ayushman18-ytbuddy.hf.space"     # Backend on Spaces
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Verify environment variables
+# Warn if Gemini key missing
 if not os.getenv('GEMINI_API_KEY'):
     print("Warning: GEMINI_API_KEY not found. Some features may not work.")
 
-
-# Load Whisper model at startup
+# Load Whisper model at startup (tiny.en by default for low RAM)
 @app.on_event("startup")
 async def startup_event():
     print("=== STARTING SERVER ===")
     print(f"Gemini Key Loaded: {bool(os.getenv('GEMINI_API_KEY'))}")
     load_whisper_model_on_startup()
 
-# Include routes
+# API routes
 app.include_router(analyze.router, prefix="/api", tags=["analyze"])
 app.include_router(ask.router, prefix="/api", tags=["ask"])
 
-# Log requests
+# Request logging
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     logger.info(f"Incoming request: {request.method} {request.url}")
