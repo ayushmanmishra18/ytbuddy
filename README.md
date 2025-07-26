@@ -1,6 +1,17 @@
 # ytbuddy - YouTube Video Analysis Companion
 
-A powerful AI-powered tool for analyzing YouTube videos, extracting transcripts, and answering questions about video content using Google's Gemini AI.
+## 📌 Summary
+A powerful AI tool that lets you ask questions about YouTube videos. It combines:
+- Whisper AI for accurate transcriptions
+- Gemini for intelligent Q&A
+- Modern web stack for smooth user experience
+
+## 🔑 Key Points
+- **Instant Insights**: Get answers from videos without watching
+- **AI-Powered**: Combines Whisper and Gemini for best results
+- **Easy Deployment**: Pre-configured for Render and Hugging Face
+- **Developer Friendly**: Clean codebase with full documentation
+- **Scalable**: Dockerized backend with efficient processing
 
 ## ✨ Features
 - **Video Analysis**: Extract and analyze YouTube video content
@@ -66,12 +77,37 @@ A powerful AI-powered tool for analyzing YouTube videos, extracting transcripts,
 
 ## 🌐 Deployment
 
-### Render
-1. Connect your GitHub repository to Render
-2. Set up environment variables from your `.env` file
-3. The `render.yaml` file will automatically configure the deployment
+### Frontend - Render
+- Deployed at: [https://ytbuddy1-1.onrender.com](https://ytbuddy1-1.onrender.com)
+- Configured via `render.yaml`
+- Automatically deploys from GitHub
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
+### Backend - Hugging Face Spaces
+- Deployed at: [https://ayushman18-ytbuddy.hf.space/](https://ayushman18-ytbuddy.hf.space/)
+- Uses Docker container with:
+  - FastAPI backend
+  - Whisper model pre-loaded
+  - Environment variables configured in Spaces settings
+
+## 🚀 How It Works
+
+1. **Frontend** (React/Vite):
+   - Hosted on Render
+   - Connects to Hugging Face backend
+   - Provides UI for video URL input and Q&A
+
+2. **Backend** (FastAPI/Whisper/Gemini):
+   - Hosted on Hugging Face Spaces
+   - Processes YouTube URLs (via yt-dlp)
+   - Generates transcripts (using Whisper)
+   - Answers questions (using Gemini AI)
+   - Returns structured responses
+
+3. **Workflow**:
+   - User submits YouTube URL
+   - Backend extracts audio and generates transcript
+   - Gemini AI analyzes transcript when questions are asked
+   - Responses are displayed in the frontend
 
 ## 📚 Documentation
 
