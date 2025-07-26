@@ -5,18 +5,19 @@ import os
 from dotenv import load_dotenv
 import logging
 from pathlib import Path
-from app.utils.transcript import load_whisper_model_on_startup  # Import as before
+from app.utils.transcript import load_whisper_model_on_startup  # Import the function
 
 load_dotenv()
 
-# Create logs directory if not exists
-Path("logs").mkdir(exist_ok=True)
+# Use a writable directory for logs (Hugging Face allows /tmp)
+log_dir = Path("/tmp/logs")
+log_dir.mkdir(parents=True, exist_ok=True)
 
 logging.basicConfig(
     level=logging.DEBUG,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('logs/server.log'),
+        logging.FileHandler(log_dir / 'server.log'),
         logging.StreamHandler()
     ]
 )
@@ -25,46 +26,46 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
-# CORS Configuration (allow all, so Hugging Face frontend can connect)
+# CORS Configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Replaced specific URLs with * for Hugging Face dynamic URL
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "https://ytbuddy1-1.onrender.com"  # Your frontend URL
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Warn instead of crashing if GEMINI_API_KEY is missing
+# Verify environment variables
 if not os.getenv('GEMINI_API_KEY'):
-    logger.warning("Warning: GEMINI_API_KEY is missing. API calls may fail.")
+    print("Warning: GEMINI_API_KEY not found. Some features may not work.")
 
-# Call the model loading function on startup
+
+# Load Whisper model at startup
 @app.on_event("startup")
 async def startup_event():
     print("=== STARTING SERVER ===")
     print(f"Gemini Key Loaded: {bool(os.getenv('GEMINI_API_KEY'))}")
-    try:
-        load_whisper_model_on_startup()
-    except Exception as e:
-        logger.error(f"Whisper model failed to load: {e}")
+    load_whisper_model_on_startup()
 
 # Include routes
 app.include_router(analyze.router, prefix="/api", tags=["analyze"])
 app.include_router(ask.router, prefix="/api", tags=["ask"])
 
-# Log incoming requests
+# Log requests
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     logger.info(f"Incoming request: {request.method} {request.url}")
     logger.debug(f"Headers: {dict(request.headers)}")
-    
     try:
         if request.method == "POST":
             body = await request.body()
-            logger.debug(f"Request body: {body.decode(errors='ignore')}")
+            logger.debug(f"Request body: {body.decode()}")
     except Exception as e:
         logger.warning(f"Could not log request body: {str(e)}")
-    
     response = await call_next(request)
     return response
 
@@ -74,18 +75,9 @@ async def health_check():
 
 @app.get("/debug/packages")
 async def debug_packages():
-    try:
-        import pytube
-        import whisper  # Import whisper here if available
-        return {
-            "pytube": {
-                "version": getattr(pytube, "__version__", "unknown"),
-                "attributes": dir(pytube)
-            },
-            "whisper": {
-                "version": getattr(whisper, "__version__", "unknown"),
-                "attributes": dir(whisper)
-            }
-        }
-    except ImportError:
-        return {"error": "pytube or whisper not installed"}
+    import pytube
+    import whisper
+    return {
+        "pytube": {"version": pytube.__version__, "attributes": dir(pytube)},
+        "whisper": {"version": whisper.__version__, "attributes": dir(whisper)},
+    }
