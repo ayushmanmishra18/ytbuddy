@@ -7,23 +7,32 @@ const Hero = ({ onVideoSubmit }) => {
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+
   const [titleRef, titleVisible] = useScrollAnimation();
   const [subtitleRef, subtitleVisible] = useScrollAnimation();
   const [formRef, formVisible] = useScrollAnimation();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const url = youtubeUrl.trim();
+    if (!url) {
+      setError('Please enter a valid YouTube URL');
+      setTimeout(() => setError(null), 4000);
+      return;
+    }
+
     setError(null);
     setIsLoading(true);
-    
+
     try {
-      const result = await analyzeVideo(youtubeUrl);
-      if (!result?.analysis) {
-        throw new Error('No analysis data received');
+      const result = await analyzeVideo(url);
+      if (!result || !result.analysis) {
+        throw new Error('No analysis data received from server');
       }
       onVideoSubmit(result);
     } catch (err) {
-      setError(err.message || 'Failed to analyze video');
+      console.error('Video analysis error:', err);
+      setError(err.message || 'Failed to analyze video. Try again.');
       setTimeout(() => setError(null), 5000);
     } finally {
       setIsLoading(false);
@@ -32,16 +41,16 @@ const Hero = ({ onVideoSubmit }) => {
 
   return (
     <section className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-white to-orange-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 pt-20 transition-all duration-500 relative overflow-hidden">
-      {/* Decorative circles omitted for brevity */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <div className="relative z-10">
-          {/* Badge, Titles, Subtitle remain unchanged */}
+          {/* Animated Title */}
           <div ref={titleRef} className={`scroll-animate-scale ${titleVisible ? 'visible' : ''}`}>
             <h1 className="text-6xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-orange-600 via-red-600 to-orange-800 bg-clip-text text-transparent">
               YTBuddy
             </h1>
           </div>
 
+          {/* Subtitle */}
           <div ref={subtitleRef} className={`scroll-animate ${subtitleVisible ? 'visible' : ''}`}>
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6">
               🤖 Your AI-Powered YouTube Learning Companion
@@ -51,6 +60,7 @@ const Hero = ({ onVideoSubmit }) => {
             </p>
           </div>
 
+          {/* URL Input Form */}
           <div ref={formRef} className={`scroll-animate ${formVisible ? 'visible' : ''}`}>
             <form onSubmit={handleSubmit} className="max-w-2xl mx-auto mb-16">
               {error && (
@@ -59,7 +69,9 @@ const Hero = ({ onVideoSubmit }) => {
                 </div>
               )}
               <div className="relative group">
+                {/* Glow Background */}
                 <div className="absolute inset-0 bg-gradient-to-r from-orange-400 via-red-500 to-pink-500 rounded-2xl blur-lg opacity-30 group-hover:opacity-50 transition-all duration-500 animate-pulse"></div>
+                
                 <div className="relative flex items-center">
                   <input
                     type="text"
@@ -92,7 +104,6 @@ const Hero = ({ onVideoSubmit }) => {
                 </div>
               </div>
             </form>
-            {/* CTA Info unchanged */}
           </div>
         </div>
       </div>

@@ -10,10 +10,10 @@ import Footer from './components/Footer';
 import VideoAnalysis from './components/VideoAnalysis';
 
 function App() {
-  const [currentPage, setCurrentPage] = useState('landing'); // Start with landing page
+  const [currentPage, setCurrentPage] = useState('landing');
   const [videoData, setVideoData] = useState(null);
 
-  // Load saved state on initial render
+  // Restore saved state
   useEffect(() => {
     const savedState = localStorage.getItem('videoAnalysisState');
     if (savedState) {
@@ -26,9 +26,15 @@ function App() {
   }, []);
 
   const handleVideoSubmit = (data) => {
-    setVideoData(data);
+    // Normalize so VideoAnalysis always gets video_id at top level
+    const normalizedData = {
+      ...data,
+      video_id: data.video_id || data.analysis?.video_id || '', // fallback
+    };
+
+    setVideoData(normalizedData);
     setCurrentPage('analysis');
-    localStorage.setItem('videoAnalysisState', JSON.stringify({ videoData: data }));
+    localStorage.setItem('videoAnalysisState', JSON.stringify({ videoData: normalizedData }));
   };
 
   const handleBackToLanding = () => {
