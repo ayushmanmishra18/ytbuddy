@@ -16,7 +16,7 @@ def load_whisper_model_on_startup():
     global whisper_model
     logger.info(f"Loading Whisper model: {WHISPER_MODEL_SIZE}...")
     try:
-        whisper_model = whisper.load_model(WHISPER_MODEL_SIZE) 
+        whisper_model = whisper.load_model(WHISPER_MODEL_SIZE, device="cpu")
         logger.info(f"Whisper model {WHISPER_MODEL_SIZE} loaded successfully.")
     except Exception as e:
         logger.error(f"ERROR: Could not load Whisper model {WHISPER_MODEL_SIZE}: {e}")
