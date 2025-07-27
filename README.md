@@ -121,6 +121,21 @@ cd server
 pytest tests/
 ```
 
+## 📸 Demo
+
+Here’s how YTBuddy looks in action:
+
+<div align="center">
+  <img src="assets/home.png" alt="Home Page" width="30%" style="margin:10px;">
+  <img src="assets/features.png" alt="feature Page" width="30%" style="margin:10px;">
+  <img src="assets/summary.png" alt="Analysis Page" width="30%" style="margin:10px;">
+  <img src="assets/keypoints.png" alt="Analysis Page" width="30%" style="margin:10px;">
+  <img src="assets/qna.png" alt="Q&A Page" width="30%" style="margin:10px;">
+</div>
+
+
+
+
 ## 🤝 Contributing
 1. Fork the project
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
