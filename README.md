@@ -64,15 +64,6 @@ A powerful AI-powered tool for analyzing YouTube videos, extracting transcripts,
 
 3. Open http://localhost:5173 in your browser
 
-## 🌐 Deployment
-
-### Render
-1. Connect your GitHub repository to Render
-2. Set up environment variables from your `.env` file
-3. The `render.yaml` file will automatically configure the deployment
-
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
-
 ## 📚 Documentation
 
 ### API Endpoints
@@ -86,8 +77,6 @@ The application consists of:
 - FastAPI backend (in `/server`)
 - AI integration with Whisper and Gemini
 - ChromaDB for vector storage
-
-For a visual demo, please visit the deployed version.
 
 ## 🔍 Detailed API Documentation
 
