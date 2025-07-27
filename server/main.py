@@ -5,73 +5,68 @@ import os
 from dotenv import load_dotenv
 import logging
 from pathlib import Path
-from app.utils.transcript import load_whisper_model_on_startup  # Whisper loader
+from app.utils.transcript import load_whisper_model_on_startup # Import the function
 
-# Load environment variables
 load_dotenv()
 
-# Setup logs directory (Hugging Face Spaces needs writable paths)
-log_dir = Path("/tmp/logs")
-log_dir.mkdir(parents=True, exist_ok=True)
+# Create logs directory if not exists
+Path("logs").mkdir(exist_ok=True)
 
 logging.basicConfig(
     level=logging.DEBUG,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler(log_dir / 'server.log'),
+        logging.FileHandler('logs/server.log'),
         logging.StreamHandler()
     ]
 )
 
 logger = logging.getLogger(__name__)
 
-# Create FastAPI app
 app = FastAPI()
 
-# Allow local + deployed frontend domains
+# CORS Configuration
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
         "http://127.0.0.1:5173",
-        "https://ytbuddy1-1.onrender.com",
-        "https://ayushman18-ytbuddy.hf.space"
+        "https://ytbuddy1-1.onrender.com"  # Your frontend URL is here
+
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Warn if Gemini API key missing
-if not os.getenv('GEMINI_API_KEY'):
-    logger.warning("GEMINI_API_KEY not found. Some features may not work.")
+# Verify environment variables
+assert os.getenv('GEMINI_API_KEY'), "GEMINI_API_KEY missing"
 
-# Load Whisper model when the server starts
+# Call the model loading function on startup
 @app.on_event("startup")
 async def startup_event():
-    print("=== STARTING YTBUDDY SERVER ===")
+    print("=== STARTING SERVER ===")
     print(f"Gemini Key Loaded: {bool(os.getenv('GEMINI_API_KEY'))}")
-    load_whisper_model_on_startup()
+    load_whisper_model_on_startup() # Call the synchronous function for model loading
 
-# Register API routes
+# Include routes
 app.include_router(analyze.router, prefix="/api", tags=["analyze"])
 app.include_router(ask.router, prefix="/api", tags=["ask"])
 
-# Log every request (for debugging)
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     logger.info(f"Incoming request: {request.method} {request.url}")
+    logger.debug(f"Headers: {dict(request.headers)}")
+    
     try:
         if request.method == "POST":
             body = await request.body()
             logger.debug(f"Request body: {body.decode()}")
     except Exception as e:
-        logger.warning(f"Could not log request body: {e}")
-    return await call_next(request)
-
-@app.get("/")
-async def root():
-    return {"message": "YTBuddy API is running! Use /api/analyze or /api/ask."}
+        logger.warning(f"Could not log request body: {str(e)}")
+    
+    response = await call_next(request)
+    return response
 
 @app.get("/health")
 async def health_check():
@@ -79,9 +74,16 @@ async def health_check():
 
 @app.get("/debug/packages")
 async def debug_packages():
-    import yt_dlp
-    import whisper
+    import pytube
+    import whisper # Import whisper here
+    # No youtube_transcript_api imported anymore
     return {
-        "yt_dlp": {"version": yt_dlp.version.__version__},
-        "whisper": {"attributes": dir(whisper)},
+        "pytube": {
+            "version": pytube.__version__,
+            "attributes": dir(pytube)
+        },
+        "whisper": {
+            "version": whisper.__version__,
+            "attributes": dir(whisper)
+        }
     }
